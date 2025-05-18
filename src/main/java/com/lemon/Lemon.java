@@ -35,15 +35,18 @@ public class Lemon {
         }
     }   
                     //key value    ["type": "PathExists", "path": "C:\Windows"]
-    public void addCheck(String message, int points, ArrayList<Map<String, String>> checks) {
+    public void addCheck(String message, int points, ArrayList<String> kind, ArrayList<String> type, ArrayList<Map<String, String>> checks) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("scoring.conf", true))) {
+            int count = 0;
             writer.write("\n\n[[check]]\n");
             writer.write("message = '" + message + "'\n");
             writer.write("points = " + points + "\n");
             for (Map<String, String> checkPass : checks) {
-                writer.write("    [[check.pass]]\n");
+                writer.write("\n    " + kind.get(count));
+                writer.write("\n    type = '" + type.get(count) + "'\n");
+                count++;
                 for (Map.Entry<String, String> entry : checkPass.entrySet()) {
-                    writer.write("    " + entry.getKey() + " = " + "'" + entry.getValue() + "'\n");
+                    writer.write("    " + entry.getKey().substring(0, entry.getKey().length() - 1) + " = " + "'" + entry.getValue() + "'\n");
                 }
             }
         } catch (IOException e) {

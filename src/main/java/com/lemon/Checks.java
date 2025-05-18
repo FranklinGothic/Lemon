@@ -12,7 +12,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.util.LinkedHashMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Checks {
@@ -20,6 +19,8 @@ public class Checks {
     private Stage stage;
     private ComboBox<String> checkKind;
     private ComboBox<String> checkTypes;
+    private ArrayList<String> kindsArrayList = new ArrayList<>();
+    private ArrayList<String> typeArrayList = new ArrayList<>();
     private ArrayList<Map<Label, TextField>> checkParamsArray = new ArrayList<>();
 
     public Checks(Lemon lemonObj, Stage stage) {
@@ -121,14 +122,14 @@ public class Checks {
                     ArrayList<Map<String, String>> checkTransform = new ArrayList<>();
                     //goest through all maps in array
                     for (Map<Label, TextField> labelMap : checkParamsArray) {
-                        Map<String, String> stringMap = new HashMap<>();
+                        Map<String, String> stringMap = new LinkedHashMap<>();
                         //every entry
                         for (Map.Entry<Label, TextField> entryMap : labelMap.entrySet()) {
                             stringMap.put(entryMap.getKey().getText(), entryMap.getValue().getText());
                         }
                         checkTransform.add(stringMap);
                     }
-                    lemonObj.addCheck(message, points, checkTransform);
+                    lemonObj.addCheck(message, points, kindsArrayList, typeArrayList, checkTransform);
                 }
             }
         };
@@ -155,6 +156,7 @@ public class Checks {
 
         EventHandler<ActionEvent> dropTypesEvent = new EventHandler<ActionEvent>() {
         public void handle(ActionEvent e) {
+            typeArrayList.add(checkTypes.getValue());
             paramsBox.getChildren().clear();
             String[] params = checksMap.get(checkTypes.getValue());
             if (params != null) {
@@ -174,6 +176,13 @@ public class Checks {
             }
         }
     };
+            EventHandler<ActionEvent> dropKindEvent = new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent e) {
+                    kindsArrayList.add(checkKind.getValue());
+                }
+            }; 
+
+    checkKind.setOnAction(dropKindEvent);
     checkTypes.setOnAction(dropTypesEvent);
     VBox checkContainer = new VBox(checkKind, checkTypes, paramsBox);
     box.getChildren().add(checkContainer);

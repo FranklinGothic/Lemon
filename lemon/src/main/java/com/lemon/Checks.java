@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -21,9 +22,9 @@ public class Checks {
     private ComboBox<String> checkKind;
     private ComboBox<String> checkTypes;
     
-    private ArrayList<String> kindsArrayList = new ArrayList<>();
-    private ArrayList<String> typeArrayList = new ArrayList<>();
-    private ArrayList<Map<Label, TextField>> checkParamsArray = new ArrayList<>();
+    private ArrayList<String> kindsArrayList;
+    private ArrayList<String> typeArrayList;
+    private ArrayList<Map<Label, TextField>> checkParamsArray;
 
     public Checks(Lemon lemonObj, Stage stage) {
         this.lemonObj = lemonObj;
@@ -31,24 +32,29 @@ public class Checks {
     }
 
     public void handle() {
+        kindsArrayList = new ArrayList<>();
+        typeArrayList = new ArrayList<>();
+        checkParamsArray = new ArrayList<>();
+
         Button addVuln = new Button("Add Vulnerability");
         VBox root = new VBox(addVuln);
         Scene addVulnerability = new Scene(root, 500, 500);
 
-        EventHandler<ActionEvent> doneButtonEvent = new EventHandler<ActionEvent>() {
+        EventHandler<ActionEvent> addButtonEvent = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e)
             {
+                //On add vulnerability button pressed calls handleCheck method
                 handleCheck();
             }
         };
 
-        addVuln.setOnAction(doneButtonEvent);
+        addVuln.setOnAction(addButtonEvent);
         stage.setScene(addVulnerability);
     }
 
     public void handleCheck() {
-        LinkedHashMap<String, String[]> checksMap = new LinkedHashMap<>();
-        checksMap.put("CommandContains", new String[]{"cmd", "value"});
+        LinkedHashMap<String, String[]> checksMap = new LinkedHashMap<>(); // Adds all the possible types of checks
+        checksMap.put("CommandContains", new String[]{"cmd", "value"});// based off of OS
         checksMap.put("CommandOutput", new String[]{"cmd", "value"});
         checksMap.put("DirContains", new String[]{"path", "value"});
         checksMap.put("FileContains", new String[]{"path", "value"});
@@ -61,9 +67,9 @@ public class Checks {
         checksMap.put("ServiceUp", new String[]{"name"});
         checksMap.put("UserExists", new String[]{"name"});
         checksMap.put("UserInGroup", new String[]{"user", "group"});
-        //I'm not sure if this implementation will work because people may name wrong but idk
-        //also idk if we need the linux checks but like who cares (just gunna assume windows unless linux in title)
-        if (lemonObj.getOs().toLowerCase().contains("linux")) {
+        String os = lemonObj.getOs().toLowerCase();
+
+        if (!(os.contains("windows"))) { // Checks if current OS is Linux 
             checksMap.put("PasswordChanged", new String[]{"user", "value"});
             checksMap.put("PermissionIs", new String[]{"path", "value"});
             checksMap.put("AutoCheckUpdatesEnabled", new String[]{});
@@ -84,6 +90,7 @@ public class Checks {
             checksMap.put("UserRights", new String[]{"name", "value"});
             checksMap.put("WindowsFeature", new String[]{"name"});
         }
+
         VBox allChecksBox = new VBox();
         addCheckPass(checksMap, allChecksBox);
 
@@ -112,17 +119,20 @@ public class Checks {
         Button done = new Button("Done");
         EventHandler<ActionEvent> doneButtonEvent = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
-                if (messageField.getText().isEmpty() || pointsField.getText().isEmpty() || checkKind.getValue() == null || checkTypes.getValue() == null) {
-                    //cry
+                boolean empty = false;
+                for (int i = 0; i < typeArrayList.size(); i++) {
+                    if (kindsArrayList.get(i) == null || typeArrayList.get(i) == null) {
+                        empty = true;
+                    }
+                }
+                if (messageField.getText().isEmpty() || pointsField.getText().isEmpty() || empty) {
                     System.out.println("you suck");
                 }
                 else {
                     String message = messageField.getText();
                     int points = Integer.parseInt(pointsField.getText());
-                    //WARNING THIS IMPLEMENTATION IS STUPID AF BUT I THINK IT WILL WORK - alex before he codes his idea
-                    //idea - gunna convert the arraylist map<label, tecfeild> to a arraylist map <Sting, String>
                     ArrayList<Map<String, String>> checkTransform = new ArrayList<>();
-                    //goest through all maps in array
+
                     for (Map<Label, TextField> labelMap : checkParamsArray) {
                         Map<String, String> stringMap = new LinkedHashMap<>();
                         //every entry
@@ -133,6 +143,7 @@ public class Checks {
                     }
                     lemonObj.addCheck(message, points, kindsArrayList, typeArrayList, checkTransform);
                 }
+                Checks.this.handle();
             }
         };
         done.setOnAction(doneButtonEvent);
@@ -150,6 +161,7 @@ public class Checks {
             checkKind.getItems().add(kind);
         }
         checkTypes = new ComboBox<>();
+        CheckBox notBox = new CheckBox("Not");
         for (String type : checksMap.keySet()) {
             checkTypes.getItems().add(type);
         }
@@ -162,7 +174,7 @@ public class Checks {
             paramsBox.getChildren().clear();
             String[] params = checksMap.get(checkTypes.getValue());
             if (params != null) {
-                //new map for aech set of porhams
+                //new map for aech set/chunk of params (Label, TextField)
                 Map<Label, TextField> checkParams = new LinkedHashMap<>();
                 for (String poramValue : params) {
                     Label poram = new Label(poramValue + ":");
@@ -184,9 +196,22 @@ public class Checks {
                 }
             }; 
 
+            EventHandler<ActionEvent> notBoxEvent = new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent e) {
+                    if(notBox.isSelected()) {
+                        typeArrayList.set(typeArrayList.size() - 1, typeArrayList.get(typeArrayList.size() - 1) + "Not");
+                    } else { // ["ProgramVersionNot"]
+                        typeArrayList.set(typeArrayList.size() - 1, typeArrayList.get(typeArrayList.size() - 1).substring(0, typeArrayList.get(typeArrayList.size() - 1).length() - 3));
+                    }
+                }
+            };
+
+
+    notBox.setOnAction(notBoxEvent);
     checkKind.setOnAction(dropKindEvent);
     checkTypes.setOnAction(dropTypesEvent);
-    VBox checkContainer = new VBox(checkKind, checkTypes, paramsBox);
-    box.getChildren().add(checkContainer);
+    HBox comboNot = new HBox(checkTypes, notBox);
+    VBox checkContainer = new VBox(checkKind, comboNot, paramsBox); // makes a chunk
+    box.getChildren().add(checkContainer); // adds it to the scene
     }
 }

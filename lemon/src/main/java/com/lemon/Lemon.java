@@ -38,6 +38,9 @@ public class Lemon {
     public void addCheck(String message, int points, ArrayList<String> kind, ArrayList<String> type, ArrayList<Map<String, String>> checks) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("scoring.conf", true))) {
             int count = 0;
+            //didnt feel like changing the enhanced for loops to normal ones to implement the count
+            //as it would have been much harder bc would have had to use .get and shit
+            //didnt want to do it
             writer.write("\n\n[[check]]\n");
             writer.write("message = '" + message + "'\n");
             writer.write("points = " + points + "\n");
@@ -46,6 +49,8 @@ public class Lemon {
                 writer.write("\n    type = '" + type.get(count) + "'\n");
                 count++;
                 for (Map.Entry<String, String> entry : checkPass.entrySet()) {
+                    //substring needed because the label is created as value needed + ":" so we just 
+                    //get rid of it with substring
                     writer.write("    " + entry.getKey().substring(0, entry.getKey().length() - 1) + " = " + "'" + entry.getValue() + "'\n");
                 }
             }

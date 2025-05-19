@@ -110,8 +110,13 @@ public class Checks {
         Button done = new Button("Done");
         EventHandler<ActionEvent> doneButtonEvent = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
-                if (messageField.getText().isEmpty() || pointsField.getText().isEmpty() || checkKind.getValue() == null || checkTypes.getValue() == null) {
-                    //cry
+                boolean empty = false;
+                for (int i = 0; i < typeArrayList.size(); i++) {
+                    if (kindsArrayList.get(i) == null || typeArrayList.get(i) == null) {
+                        empty = true;
+                    }
+                }
+                if (messageField.getText().isEmpty() || pointsField.getText().isEmpty() || empty) {
                     System.out.println("you suck");
                 }
                 else {

@@ -17,8 +17,10 @@ import java.util.Map;
 public class Checks {
     private Lemon lemonObj;
     private Stage stage;
+
     private ComboBox<String> checkKind;
     private ComboBox<String> checkTypes;
+    
     private ArrayList<String> kindsArrayList = new ArrayList<>();
     private ArrayList<String> typeArrayList = new ArrayList<>();
     private ArrayList<Map<Label, TextField>> checkParamsArray = new ArrayList<>();

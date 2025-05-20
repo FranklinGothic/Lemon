@@ -21,10 +21,8 @@ public class Checks {
 
     private ComboBox<String> checkKind;
     private ComboBox<String> checkTypes;
-    
-    private ArrayList<String> kindsArrayList;
-    private ArrayList<String> typeArrayList;
-    private ArrayList<Map<Label, TextField>> checkParamsArray;
+
+    private ArrayList<Check> checks;
 
     public Checks(Lemon lemonObj, Stage stage) {
         this.lemonObj = lemonObj;
@@ -32,10 +30,6 @@ public class Checks {
     }
 
     public void handle() {
-        kindsArrayList = new ArrayList<>();
-        typeArrayList = new ArrayList<>();
-        checkParamsArray = new ArrayList<>();
-
         Button addVuln = new Button("Add Vulnerability");
         VBox root = new VBox(addVuln);
         Scene addVulnerability = new Scene(root, 500, 500);
@@ -90,9 +84,8 @@ public class Checks {
             checksMap.put("UserRights", new String[]{"name", "value"});
             checksMap.put("WindowsFeature", new String[]{"name"});
         }
-
-        VBox allChecksBox = new VBox();
-        addCheckPass(checksMap, allChecksBox);
+    
+        String[] checkKinds = {"[[check.pass]]", "[[check.fail]]", "[[check.passoverride]]"};
 
         Label message = new Label("message:");
         TextField messageField = new TextField();
@@ -106,112 +99,27 @@ public class Checks {
         hbPoints.getChildren().addAll(points, pointsField);
         hbPoints.setSpacing(10);
 
-
         Button add = new Button("+");
+        
+        VBox 
         EventHandler<ActionEvent> addButtonEvent = new EventHandler<ActionEvent>() {
+            @Override
             public void handle(ActionEvent e)
             {
-                addCheckPass(checksMap, allChecksBox);
+                addChunk(checkKinds, checksMap);
             }
         };
-        add.setOnAction(addButtonEvent);
 
-        Button done = new Button("Done");
-        EventHandler<ActionEvent> doneButtonEvent = new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e) {
-                boolean empty = false;
-                for (int i = 0; i < typeArrayList.size(); i++) {
-                    if (kindsArrayList.get(i) == null || typeArrayList.get(i) == null) {
-                        empty = true;
-                    }
-                }
-                if (messageField.getText().isEmpty() || pointsField.getText().isEmpty() || empty) {
-                    System.out.println("you suck");
-                }
-                else {
-                    String message = messageField.getText();
-                    int points = Integer.parseInt(pointsField.getText());
-                    ArrayList<Map<String, String>> checkTransform = new ArrayList<>();
-
-                    for (Map<Label, TextField> labelMap : checkParamsArray) {
-                        Map<String, String> stringMap = new LinkedHashMap<>();
-                        //every entry
-                        for (Map.Entry<Label, TextField> entryMap : labelMap.entrySet()) {
-                            stringMap.put(entryMap.getKey().getText(), entryMap.getValue().getText());
-                        }
-                        checkTransform.add(stringMap);
-                    }
-                    lemonObj.addCheck(message, points, kindsArrayList, typeArrayList, checkTransform);
-                }
-                Checks.this.handle();
-            }
-        };
-        done.setOnAction(doneButtonEvent);
-
-        VBox checkRoot = new VBox(done, hbMessage, hbPoints, allChecksBox, add);
-        Scene sc = new Scene(checkRoot, 500, 500);
+        //Done button to be implemented
+        VBox parent = new VBox(hbMessage, hbPoints, add);
+        Scene sc = new Scene(parent, 500, 500);
         stage.setScene(sc);
     }
+    
+    public void addChunk(String[] checkKinds, LinkedHashMap<String, String[]> checksMap, VBox parent) {
+        VBox childVbox = new VBox();
 
-
-    public void addCheckPass(LinkedHashMap<String, String[]> checksMap, VBox box) {
-        String[] checkKinds = {"[[check.pass]]", "[[check.fail]]", "[[check.passoverride]]"};
-        checkKind = new ComboBox<>();
-        for (String kind : checkKinds) {
-            checkKind.getItems().add(kind);
-        }
-        checkTypes = new ComboBox<>();
-        CheckBox notBox = new CheckBox("Not");
-        for (String type : checksMap.keySet()) {
-            checkTypes.getItems().add(type);
-        }
-
-        VBox paramsBox = new VBox();
-
-        EventHandler<ActionEvent> dropTypesEvent = new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent e) {
-            typeArrayList.add(checkTypes.getValue());
-            paramsBox.getChildren().clear();
-            String[] params = checksMap.get(checkTypes.getValue());
-            if (params != null) {
-                //new map for aech set/chunk of params (Label, TextField)
-                Map<Label, TextField> checkParams = new LinkedHashMap<>();
-                for (String poramValue : params) {
-                    Label poram = new Label(poramValue + ":");
-                    TextField poramField = new TextField();
-                    HBox hbporam = new HBox();
-                    hbporam.getChildren().addAll(poram, poramField);
-                    hbporam.setSpacing(10);
-                    paramsBox.getChildren().add(hbporam);
-                    checkParams.put(poram, poramField);
-                }
-                //add poorm map to the array
-                checkParamsArray.add(checkParams);
-            }
-        }
-    };
-            EventHandler<ActionEvent> dropKindEvent = new EventHandler<ActionEvent>() {
-                public void handle(ActionEvent e) {
-                    kindsArrayList.add(checkKind.getValue());
-                }
-            }; 
-
-            EventHandler<ActionEvent> notBoxEvent = new EventHandler<ActionEvent>() {
-                public void handle(ActionEvent e) {
-                    if(notBox.isSelected()) {
-                        typeArrayList.set(typeArrayList.size() - 1, typeArrayList.get(typeArrayList.size() - 1) + "Not");
-                    } else { // ["ProgramVersionNot"]
-                        typeArrayList.set(typeArrayList.size() - 1, typeArrayList.get(typeArrayList.size() - 1).substring(0, typeArrayList.get(typeArrayList.size() - 1).length() - 3));
-                    }
-                }
-            };
-
-
-    notBox.setOnAction(notBoxEvent);
-    checkKind.setOnAction(dropKindEvent);
-    checkTypes.setOnAction(dropTypesEvent);
-    HBox comboNot = new HBox(checkTypes, notBox);
-    VBox checkContainer = new VBox(checkKind, comboNot, paramsBox); // makes a chunk
-    box.getChildren().add(checkContainer); // adds it to the scene
     }
+
+
 }

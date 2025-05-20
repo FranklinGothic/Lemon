@@ -36,7 +36,7 @@ public class Lemon {
         }
     }   
                     //key value    ["type": "PathExists", "path": "C:\Windows"]
-    public void addCheck(String message, int points, ArrayList<String> kind, ArrayList<String> type, ArrayList<Map<String, String>> checks) {
+    public void addCheck(String message, String points, ArrayList<String> kind, ArrayList<String> type, ArrayList<Map<String, String>> checks, ArrayList<Boolean> notList) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("scoring.conf", true))) {
             int count = 0;
             writer.write("\n\n[[check]]\n");
@@ -44,7 +44,11 @@ public class Lemon {
             writer.write("points = " + points + "\n");
             for (Map<String, String> checkPass : checks) {
                 writer.write("\n    " + kind.get(count));
-                writer.write("\n    type = '" + type.get(count) + "'\n");
+                if (notList.get(count)) {
+                    writer.write("\n    type = '" + type.get(count) + "Not'\n");
+                } else {
+                    writer.write("\n    type = '" + type.get(count) + "'\n");
+                }
                 count++;
                 for (Map.Entry<String, String> entry : checkPass.entrySet()) {
                     //substring needed because the label is created as value needed + ":" so we just 

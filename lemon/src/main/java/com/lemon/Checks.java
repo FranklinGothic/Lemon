@@ -1,5 +1,7 @@
 package com.lemon;
 
+import java.rmi.NotBoundException;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -11,7 +13,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
 import java.util.LinkedHashMap;
+
+import javafx.collections.*;
+
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -29,7 +35,9 @@ public class Checks {
         this.stage = stage;
     }
 
+
     public void handle() {
+        checks = new ArrayList<>();
         Button addVuln = new Button("Add Vulnerability");
         VBox root = new VBox(addVuln);
         Scene addVulnerability = new Scene(root, 500, 500);
@@ -100,26 +108,110 @@ public class Checks {
         hbPoints.setSpacing(10);
 
         Button add = new Button("+");
+        Button done = new Button("Done!");
+
+        VBox child = new VBox();
+        child.setSpacing(10);
+
+        EventHandler<ActionEvent> doneButtonEvent = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e)
+            {
+                createChecks(messageField, pointsField);
+                Checks.this.handle();
+            }
+        };
+
+        done.setOnAction(doneButtonEvent);
         
-        VBox 
         EventHandler<ActionEvent> addButtonEvent = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e)
             {
-                addChunk(checkKinds, checksMap);
+                addChunk(checkKinds, checksMap, child);
             }
         };
 
-        //Done button to be implemented
-        VBox parent = new VBox(hbMessage, hbPoints, add);
+        add.setOnAction(addButtonEvent);
+        done.setOnAction(doneButtonEvent);
+
+        VBox parent = new VBox(done, hbMessage, hbPoints, child, add);
+        parent.setSpacing(10);
         Scene sc = new Scene(parent, 500, 500);
         stage.setScene(sc);
-    }
-    
+    } 
+
     public void addChunk(String[] checkKinds, LinkedHashMap<String, String[]> checksMap, VBox parent) {
+        final boolean[] addedAlready = {false};
         VBox childVbox = new VBox();
+        VBox childParamsVBox = new VBox();
+        final ComboBox kindList = new ComboBox(FXCollections.observableArrayList(checkKinds));
+        final ComboBox<String> checkTypes = new ComboBox<>();
 
+        for (String type : checksMap.keySet()) {
+            checkTypes.getItems().add(type);
+        }
+
+        CheckBox notCheck = new CheckBox("Not");
+        
+        EventHandler<ActionEvent> dropTypesEvent = new EventHandler<ActionEvent>() {
+        @Override
+        public void handle(ActionEvent e) {
+            childParamsVBox.getChildren().clear();
+            String[] params = checksMap.get(checkTypes.getValue()); // fetches string array of args for the check type
+            for (String paramValue : params) {
+                Label param = new Label(paramValue + ":");
+                TextField paramField = new TextField();
+                HBox hbparam = new HBox();
+                hbparam.getChildren().addAll(param, paramField);
+                hbparam.setSpacing(10);
+                childParamsVBox.getChildren().add(hbparam);
+            }
+            if (!addedAlready[0]) {
+                Check checkObj = new Check(kindList, checkTypes, notCheck, childParamsVBox);
+                checks.add(checkObj);
+                addedAlready[0] = true;
+            }
+        }
+    };
+    checkTypes.setOnAction(dropTypesEvent);
+    HBox notTypes = new HBox(checkTypes, notCheck);
+    notTypes.setSpacing(5);
+    VBox dropBoxes = new VBox(kindList, notTypes);
+    childVbox.getChildren().addAll(dropBoxes, childParamsVBox);
+    childVbox.setSpacing(7.5);
+    parent.getChildren().add(childVbox); 
     }
 
+    public void createChecks(TextField message, TextField points) {
+        ArrayList<String> kindList = new ArrayList<String>();
+        ArrayList<String> typeList = new ArrayList<String>();
+        ArrayList<Map<String, String>> checkMap = new ArrayList<>();
+        ArrayList<Boolean> notList = new ArrayList<>();
+        for (Check objKindGetter : checks) {
+            kindList.add(objKindGetter.kindBox.getValue());
+        }
+
+        for (Check objTypeGetter : checks) {
+            typeList.add(objTypeGetter.typeBox.getValue());
+        }
+
+        for (Check objBoxGetter : checks) {
+            ObservableList x = objBoxGetter.paramsBox.getChildren();
+            Map<String, String> paramsMap = new LinkedHashMap<>();
+            for (int i = 0; i < x.size(); i++) {
+                HBox paramHBox = (HBox) x.get(i);
+                Label label = (Label) paramHBox.getChildren().get(0);
+                TextField text = (TextField) paramHBox.getChildren().get(1);
+                paramsMap.put(label.getText(), text.getText());
+            }
+            checkMap.add(paramsMap);
+        }
+        for (Check objNotBox : checks) {
+            notList.add(objNotBox.notBox.isSelected());
+        }
+        lemonObj.addCheck(message.getText(), points.getText(), kindList, typeList, checkMap, notList);
+        
+    }
 
 }

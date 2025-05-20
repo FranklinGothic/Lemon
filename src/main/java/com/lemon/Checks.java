@@ -46,11 +46,7 @@ public class Checks {
         root.setSpacing(40);
         Scene addVulnerability = new Scene(root, 500, 500);
 
-<<<<<<< HEAD
         EventHandler<ActionEvent> addVulnButtonEvent = new EventHandler<ActionEvent>() {
-=======
-        EventHandler<ActionEvent> addButtonEvent = new EventHandler<ActionEvent>() {
->>>>>>> cd500e4a0aa4452a33b4788323006f83a106d999
             public void handle(ActionEvent e)
             {
                 //On add vulnerability button pressed calls handleCheck method
@@ -58,11 +54,7 @@ public class Checks {
             }
         };
 
-<<<<<<< HEAD
         addVuln.setOnAction(addVulnButtonEvent);
-=======
-        addVuln.setOnAction(addButtonEvent);
->>>>>>> cd500e4a0aa4452a33b4788323006f83a106d999
         stage.setScene(addVulnerability);
     }
 
@@ -226,8 +218,4 @@ public class Checks {
         
     }
 
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> cd500e4a0aa4452a33b4788323006f83a106d999

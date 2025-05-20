@@ -17,8 +17,4 @@ public class Check {
         this.notBox = notBox;
         this.paramsBox = paramsBox;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> cd500e4a0aa4452a33b4788323006f83a106d999
